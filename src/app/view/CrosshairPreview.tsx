@@ -98,8 +98,8 @@ export default function CrosshairPreview({DOM, HTTP, props$, svgUrl$}: Crosshair
         {crosshairLink ?
         <ul>
           <h6><i attrs-class="tiny material-icons">help</i> How do I use this?</h6>
-          <li>1. Drag this to you bookmar bar:<br/>
-            <a attrs-class="btn indigo lighten-5 blue-grey-text text-darken-5"
+          <li>1. Drag this to your bookmark bar:<br/>
+            <a attrs-class="btn red darken-3"
                 href={crosshairLink}>Crosshair for Surviv.io</a>
           </li>
           <li>2. Switch the game tab</li>

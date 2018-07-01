@@ -2,8 +2,8 @@ import Snabbdom = require("snabbdom-pragma");
 
 export const pageContent = (size, editors, preview) => (
   <div attrs-class="container">
-    <h2>Crosshair Generator for Surviv.io</h2>
     <div attrs-class="row">
+      <h2 attrs-class="col s12 white-text">Crosshair Generator for Surviv.io</h2>
       <div attrs-class="col s12 m9 row">
           {...editors}
       </div>

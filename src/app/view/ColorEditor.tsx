@@ -1,5 +1,4 @@
 import { DOMSource, VNode } from "@cycle/dom";
-import isolate from "@cycle/isolate";
 import ColorPicker from "cycle-color-picker";
 import Snabbdom = require("snabbdom-pragma");
 import xs, { Stream } from "xstream";
