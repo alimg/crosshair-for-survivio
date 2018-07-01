@@ -39,9 +39,10 @@ export function main({DOM, HTTP}: {DOM: DOMSource, HTTP: HTTPSource}) {
   const preview = CrosshairPreview({
     DOM,
     HTTP,
-    Props: xs.merge(...Object.keys(editors)
+    props$: xs.merge(...Object.keys(editors)
       .map((name: keyof ISVGProps) => editors[name].value$.map((value) => ({ name, value })))
-    )
+    ),
+    svgUrl$: xs.of(defaultState.svgProps.svgUrl)
   });
   return {
     DOM: view(),

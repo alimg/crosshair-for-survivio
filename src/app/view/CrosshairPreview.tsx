@@ -8,13 +8,14 @@ import { defaultState } from "../model";
 export type CrosshairPreviewSources = {
   DOM: DOMSource
   HTTP: HTTPSource
-  Props: Stream<{
+  props$: Stream<{
     name: "size",
     value: number
   } | {
     name: "crossFill" | "crossOutline" | "ringFill" | "ringOutline"
     value: string
-  }>
+  }>,
+  svgUrl$: Stream<string>
 };
 
 function SVG({svg, props}) {
@@ -67,7 +68,7 @@ function svgToPng(svg: HTMLElement) {
   });
 }
 
-export default function CrosshairPreview({DOM, HTTP, Props}: CrosshairPreviewSources) {
+export default function CrosshairPreview({DOM, HTTP, props$, svgUrl$}: CrosshairPreviewSources) {
   const svgResponse$ = HTTP.select("crosshair-svg")
     .map((e) => errorResponse(e))
     .flatten();
@@ -75,18 +76,18 @@ export default function CrosshairPreview({DOM, HTTP, Props}: CrosshairPreviewSou
   const crosshairLink$ = DOM.select("#crosshair-svg svg").element()
     .map((e: HTMLElement) => svgToPng(e)).flatten().startWith("").remember();
   const svg$ = svgResponse$.map((e) => e.text);
-  const svgProps = Props.fold((acc, {name, value}) => {
+  const svgProps = props$.fold((acc, {name, value}) => {
     acc = {...acc};
     acc[name] = value;
     return acc;
   }, {...defaultState.svgProps, size: defaultState.size});
   return {
     DOM: view(),
-    HTTP: xs.of({
-      url: "/crosshair.svg",
+    HTTP: svgUrl$.map((svgUrl) => ({
+      url: svgUrl,
       method: "get",
       category: "crosshair-svg"
-    } as RequestOptions)
+    } as RequestOptions))
   };
   function view() {
     return xs.combine(svg$, svgProps)
