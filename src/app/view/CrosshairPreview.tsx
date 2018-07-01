@@ -102,7 +102,7 @@ export default function CrosshairPreview({DOM, HTTP, props$, svgUrl$}: Crosshair
             <a attrs-class="btn red darken-3"
                 href={crosshairLink}>Crosshair for Surviv.io</a>
           </li>
-          <li>2. Switch the game tab</li>
+          <li>2. Switch to the game tab</li>
           <li>3. Click the bookmark to apply the cursor</li>
           <li>Enjoy!</li>
         </ul> : ""}
