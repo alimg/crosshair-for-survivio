@@ -1,0 +1,56 @@
+{
+  "name": "survivio-cursor-generator",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "bugs": {
+    "url": "https://github.com/alimg/crosshair-for-survivio/issues"
+  },
+  "homepage": "https://github.com/alimg/crosshair-for-survivio",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alimg/crosshair-for-survivio.git"
+  },
+  "scripts": {
+    "build": "node_modules/.bin/webpack",
+    "build:dev": "node_modules/.bin/webpack -w",
+    "serve:dev": "node serve-dev.js",
+    "dev": "node_modules/.bin/npm-run-all -p build:dev serve:dev",
+    "docs": "npm run build && mkdir -p docs && cp -r public/* dist docs",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "survivio",
+    "cursor",
+    "cursor",
+    "generator",
+    "crosshair"
+  ],
+  "author": "alimg",
+  "license": "BSD-3-Clause",
+  "dependencies": {
+    "@cycle/dom": "^20.4.0",
+    "@cycle/http": "^14.9.0",
+    "@cycle/isolate": "^3.3.0",
+    "@cycle/run": "^4.4.0",
+    "cycle-color-picker": "^1.0.5",
+    "materialize-css": "^1.0.0-rc.2",
+    "snabbdom-pragma": "^2.7.0",
+    "xstream": "^11.7.0"
+  },
+  "devDependencies": {
+    "css-loader": "^0.28.11",
+    "express": "^4.16.3",
+    "extract-loader": "^2.0.1",
+    "file-loader": "^1.1.11",
+    "node-sass": "^4.9.0",
+    "npm-run-all": "^4.1.3",
+    "sass-loader": "^7.0.3",
+    "ts-loader": "^4.4.2",
+    "tsconfig-paths-webpack-plugin": "^3.2.0",
+    "tslint": "^5.10.0",
+    "typescript": "^2.9.2",
+    "webpack": "^4.14.0",
+    "webpack-cli": "^3.0.8"
+  }
+}

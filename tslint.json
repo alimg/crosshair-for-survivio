@@ -1,0 +1,20 @@
+{
+    "defaultSeverity": "error",
+    "exclude": [
+      "**/node_modules/**"
+    ],
+    "extends": [
+        "tslint:recommended"
+    ],
+    "jsRules": {},
+    "rules": {
+        "object-literal-sort-keys": false,
+        "no-console": false,
+        "indent": [true, "spaces", 2],
+        "interface-name": false,
+        "interface-over-type-literal": false,
+        "no-unused-variable": true,
+        "trailing-comma": [true, {"multiline": "never"}]
+    },
+    "rulesDirectory": []
+}

@@ -1,0 +1,24 @@
+@import "materialize-css/sass/materialize";
+
+.color-text {
+  display: inline-block;
+  padding: 2px;
+  text-shadow: 0px 1px 10px white;
+  cursor: pointer;
+  border: 1px solid gray;
+  span {
+    color: white;
+    mix-blend-mode: exclusion;
+  }
+}
+
+.picker-popup {
+  position: absolute;
+  z-index: 10;
+}
+
+.ghbtns {
+  iframe {
+    border: 0;
+  }
+}

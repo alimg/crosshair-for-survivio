@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "baseUrl": "src",
+    "jsx": "react",
+    "jsxFactory": "Snabbdom.createElement",
+    "lib": ["es2016", "dom"],
+    "target": "es3",
+    "paths": {
+      "cursor-gen/*": ["./*"]
+    },
+    "sourceMap": true
+  }
+}
