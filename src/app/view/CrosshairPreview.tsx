@@ -41,7 +41,8 @@ export default function CrosshairPreview({DOM, props$, svg$}: CrosshairPreviewSo
     .map((e: HTMLElement) => svgToPng(e)).flatten().startWith("").remember();
   const showImport$ = xs.merge(
       DOM.select("#import").events("click").mapTo(true),
-      DOM.select("document").events("mousedown").mapTo(false))
+      DOM.select("document").events("mousedown").mapTo(false),
+      svg$.mapTo(false))
     .fold((state, shouldOpen) => !state && shouldOpen, false);
 
   const svgSelect$ = xs.create<string>({
