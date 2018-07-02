@@ -1,46 +1,14 @@
-import { DOMSource, VNode } from "@cycle/dom";
-import { HTTPSource, RequestOptions } from "@cycle/http";
+import { DOMSource } from "@cycle/dom";
 import Snabbdom = require("snabbdom-pragma");
-import { errorResponse } from "utility/stream";
 import xs, { Stream } from "xstream";
-import { defaultState } from "../model";
+import Popup from "./Popup";
+import { SVG, SVGEditableProps } from "./SvgElement";
 
 export type CrosshairPreviewSources = {
   DOM: DOMSource
-  HTTP: HTTPSource
-  props$: Stream<{
-    name: "size",
-    value: number
-  } | {
-    name: "crossFill" | "crossOutline" | "ringFill" | "ringOutline"
-    value: string
-  }>,
-  svgUrl$: Stream<string>
+  props$: Stream<SVGEditableProps>,
+  svg$: Stream<string>
 };
-
-function SVG({svg, props}) {
-  function update(elm: SVGSVGElement) {
-    elm.setAttribute("width", props.size);
-    elm.setAttribute("height", props.size);
-    const cross = elm.getElementById("cross") as HTMLElement;
-    cross.style.fill = props.crossFill;
-    cross.style.stroke = props.crossOutline;
-    const ring = elm.getElementById("ring") as HTMLElement;
-    ring.style.fill = props.ringFill;
-    ring.style.stroke = props.ringOutline;
-  }
-  return <div id="crosshair-svg" hook={{
-    create: (oldVnode: VNode, vnode: VNode) => {
-      const elm = vnode.elm as Element;
-      elm.innerHTML = svg;
-      update(elm.getElementsByTagName("svg")[0] as SVGSVGElement);
-    },
-    update: (oldVnode: VNode, vnode: VNode) => {
-      const elm = vnode.elm as Element;
-      update(elm.getElementsByTagName("svg")[0] as SVGSVGElement);
-    }
-  }}/>;
-}
 
 function svgToPng(svg: HTMLElement) {
   return xs.create<string>({
@@ -68,32 +36,42 @@ function svgToPng(svg: HTMLElement) {
   });
 }
 
-export default function CrosshairPreview({DOM, HTTP, props$, svgUrl$}: CrosshairPreviewSources) {
-  const svgResponse$ = HTTP.select("crosshair-svg")
-    .map((e) => errorResponse(e))
-    .flatten();
-  svgResponse$.filter((e) => e.httpError).addListener({next: console.log});
+export default function CrosshairPreview({DOM, props$, svg$}: CrosshairPreviewSources) {
   const crosshairLink$ = DOM.select("#crosshair-svg svg").element()
     .map((e: HTMLElement) => svgToPng(e)).flatten().startWith("").remember();
-  const svg$ = svgResponse$.map((e) => e.text);
-  const svgProps = props$.fold((acc, {name, value}) => {
-    acc = {...acc};
-    acc[name] = value;
-    return acc;
-  }, {...defaultState.svgProps, size: defaultState.size});
+  const showImport$ = xs.merge(
+      DOM.select("#import").events("click").mapTo(true),
+      DOM.select("document").events("mousedown").mapTo(false))
+    .fold((state, shouldOpen) => !state && shouldOpen, false);
+
+  const svgSelect$ = xs.create<string>({
+    // tslint:disable-next-line:no-empty
+    stop() {},
+    start(listener) {
+      DOM.select("#svg-input").events("change")
+        .map((e) => (e.target as HTMLInputElement).files[0])
+        .filter((f) => !!f)
+        .addListener({
+          next: (f) => {
+            const fr = new FileReader();
+            fr.onload = () => listener.next(fr.result);
+            fr.readAsText(f);
+          }
+        });
+    }
+  });
   return {
     DOM: view(),
-    HTTP: svgUrl$.map((svgUrl) => ({
-      url: svgUrl,
-      method: "get",
-      category: "crosshair-svg"
-    } as RequestOptions))
+    svgSelect$
   };
   function view() {
-    return xs.combine(svg$, svgProps)
+    return xs.combine(svg$, props$)
     .map(([svg, props]) => <SVG svg={svg} props={props}/>)
-    .map((svg) => crosshairLink$.map((crosshairLink) => (
+    .map((svg) => xs.combine(crosshairLink$, showImport$).map(([crosshairLink, showImport]) => (
       <div attrs-class="card-panel brown lighten-5">
+        <a id="import" href="javascript:void(0)">
+          <i attrs-class="tiny material-icons">cloud_upload</i> Import .svg...</a>
+        {showImport ? renderImportPopup() : ""}
         {svg}
         {crosshairLink ?
         <ul>
@@ -115,4 +93,29 @@ export default function CrosshairPreview({DOM, HTTP, props$, svgUrl$}: Crosshair
       </div>
     ))).flatten();
   }
+}
+
+function renderImportPopup() {
+  return (
+    <Popup class="brown lighten-4">
+      <div attrs-class="modal-content">
+        <h4>Import from file</h4>
+        <p>
+          Download the sample .svg file from <a href="./crosshair.svg" attrs-download>here</a>,
+          modify it then submit below.
+        </p>
+        <form action="#">
+          <div attrs-class="file-field input-field">
+            <div attrs-class="btn">
+              <span>File</span>
+              <input id="svg-input" type="file" accept="image/svg+xml"/>
+            </div>
+            <div attrs-class="file-path-wrapper">
+              <input attrs-class="file-path validate" attrs-type="text"/>
+            </div>
+          </div>
+        </form>
+      </div>
+    </Popup>
+  );
 }

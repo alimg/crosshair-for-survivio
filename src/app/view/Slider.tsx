@@ -5,23 +5,23 @@ import xs, { Stream } from "xstream";
 
 export type SliderSources = {
   DOM: DOMSource,
-  Props: Stream<{defaultValue: number, label: string, min: number, max: number}>
+  props$: Stream<{defaultValue: number, label: string, min: number, max: number}>
 };
 
-export default function Slider({DOM, Props}: SliderSources) {
+export default function Slider({DOM, props$}: SliderSources) {
   const value$ = xs.merge(
     xs.merge(
         DOM.select("#slider").events("change"),
         DOM.select("#slider").events("input"))
       .map((e: any) => Number(e.target.value)),
-    Props.map(({defaultValue}) => defaultValue)).remember();
+    props$.map(({defaultValue}) => defaultValue)).remember();
   return {
     DOM: view(),
     value$
   };
 
   function view() {
-    return Props.map(({defaultValue, label, min, max}) => value$.map((value) => (
+    return props$.map(({defaultValue, label, min, max}) => value$.map((value) => (
       <div attrs-class="col s12">
         <div attrs-class="card-panel brown lighten-5">
           <label>{label}</label>

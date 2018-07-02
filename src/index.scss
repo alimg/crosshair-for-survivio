@@ -7,6 +7,9 @@ body, html {
 #main-content {
   min-height: 100%;
 }
+.container {
+  height: 100%;
+}
 
 .color-text {
   display: inline-block;
@@ -20,13 +23,29 @@ body, html {
   }
 }
 
-.picker-popup {
+.inline-popup {
   position: absolute;
   z-index: 10;
+}
+
+.popup {
+  @extend .modal;
+  display: block;
 }
 
 .ghbtns {
   iframe {
     border: 0;
   }
+}
+
+.btn {
+  min-height: 36px;
+  line-height: 14px;
+  height: unset;
+  padding: 11px 16px;
+}
+
+.file-field .btn {
+  line-height: calc(3rem - 18px);
 }

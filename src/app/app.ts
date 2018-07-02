@@ -1,58 +1,97 @@
-import { DOMSource } from "@cycle/dom";
-import { HTTPSource } from "@cycle/http";
+import { DOMSource, VNode } from "@cycle/dom";
+import { HTTPSource, RequestOptions } from "@cycle/http";
 import { pageContent } from "app/view";
 import ColorEditor, { ColorEditorSinks } from "app/view/ColorEditor";
 import CrosshairPreview from "app/view/CrosshairPreview";
 import Slider from "app/view/Slider";
 import isolate from "utility/isolate";
-import xs from "xstream";
+import { errorResponse } from "utility/stream";
+import xs, { Stream } from "xstream";
 import { defaultState, IState, ISVGProps } from "./model";
+import { parseSVGProps, SVGEditableProps } from "./view/SvgElement";
+
+type EditorSinks = {
+  DOM: Stream<VNode>
+  valueReducer$: Stream<(state: SVGEditableProps) => any>
+};
+
+function capFirstLetter(str: string) {
+  return str.replace(/^\w/, (c) => c.toUpperCase());
+}
+
+function buildEditors(DOM: DOMSource, svgProps: SVGEditableProps) {
+  const editors: EditorSinks[] = [];
+  const sizeEditorSinks = isolate(Slider, "size-slider")({
+    DOM,
+    props$: xs.of({
+      label: "Size",
+      defaultValue: svgProps.size,
+      min: 1,
+      max: 128
+    }).remember()
+  });
+  editors.push({
+    DOM: sizeEditorSinks.DOM,
+    valueReducer$: sizeEditorSinks.value$.map((value) =>
+      (state: SVGEditableProps) => Object.assign(state, ({size: value})))
+  });
+  Object.keys(svgProps.paths).forEach((selector) => {
+    const path = svgProps.paths[selector];
+    for (const colorEditable of ["fill", "stroke"]) {
+      const style: string = path.style[colorEditable];
+      if (style === undefined) {
+        continue;
+      }
+      const sinks = isolate(ColorEditor, `color_${selector}-${colorEditable}`)({
+        DOM,
+        props$: xs.of({ label: capFirstLetter(`${path.name} ${colorEditable} Color`), defaultValue: style }).remember()
+      });
+      editors.push({
+        DOM: sinks.DOM,
+        valueReducer$: sinks.value$.map((value) =>
+          (state: SVGEditableProps) => {
+            state.paths[selector] = state.paths[selector] || {...path};
+            state.paths[selector].style = Object.assign(state.paths[selector].style || {}, {[colorEditable]: value});
+            return state;
+          })
+      });
+    }
+  });
+  return {editors, initalProps: svgProps};
+}
 
 export function main({DOM, HTTP}: {DOM: DOMSource, HTTP: HTTPSource}) {
-  const isolateColorEditor = isolate(ColorEditor);
-  const isolateSlider = isolate(Slider);
-  const state$ = xs.of<IState>(defaultState).remember();
-  const svgProps$ = state$.map((state) => state.svgProps);
-  const editors = {
-    size: isolateSlider({
-      DOM,
-      Props: state$.map((state) => ({
-        label: "Size",
-        defaultValue: state.size,
-        min: 1,
-        max: 128
-      })).remember()
-    }),
-    crossFill: isolate(ColorEditor, "crossFill")({
-      DOM, Props: svgProps$.map((props) => ({ label: "Cross Fill Color", defaultValue: props.crossFill }))
-    }),
-    crossOutline: isolate(ColorEditor, "crossOutline")({
-      DOM, Props: svgProps$.map((props) => ({ label: "Cross Outline Color", defaultValue: props.crossOutline }))
-    }),
-    ringFill: isolate(ColorEditor, "ringFill")({
-      DOM, Props: svgProps$.map((props) => ({ label: "Ring Fill Color", defaultValue: props.ringFill }))
-    }),
-    ringOutline: isolate(ColorEditor, "ringOutline")({
-      DOM, Props: svgProps$.map((props) => ({ label: "Ring Outline Color", defaultValue: props.ringOutline }))
-    })
-  };
-  const preview = CrosshairPreview({
+  const svgResponse$ = HTTP.select("crosshair-svg")
+    .map((e) => errorResponse(e))
+    .flatten();
+  svgResponse$.filter((e) => e.httpError).addListener({next: console.log});
+  const svgSelect$ = xs.create<string>();
+  const svg$ = xs.merge(svgResponse$.map((e) => e.text), svgSelect$).remember();
+  const editors$ = svg$.map(parseSVGProps)
+    .map((svgProps) => buildEditors(DOM, svgProps));
+  const previewSinks = CrosshairPreview({
     DOM,
-    HTTP,
-    props$: xs.merge(...Object.keys(editors)
-      .map((name: keyof ISVGProps) => editors[name].value$.map((value) => ({ name, value })))
-    ),
-    svgUrl$: xs.of(defaultState.svgProps.svgUrl)
+    props$: editors$.map(({editors, initalProps}) => xs.merge(...editors.map((editor) => editor.valueReducer$))
+      .fold((state, reducer) => reducer(state), initalProps)).flatten(),
+    svg$
   });
+  svgSelect$.imitate(previewSinks.svgSelect$);
+  const svgUrl$ = xs.of(defaultState.svgProps.svgUrl);
   return {
     DOM: view(),
-    HTTP: preview.HTTP
+    HTTP: svgUrl$.map((svgUrl) => ({
+      url: svgUrl,
+      method: "get",
+      category: "crosshair-svg"
+    } as RequestOptions))
   };
   function view() {
+    const previewDOM$ = previewSinks.DOM;
+    const editorsDOM$ = editors$.map(({editors}) =>
+      xs.combine(...editors.map((editor) => editor.DOM)) as Stream<VNode[]>).flatten();
     return xs.combine(
-          xs.combine(editors.size.DOM, editors.crossFill.DOM, editors.crossOutline.DOM,
-            editors.ringFill.DOM, editors.ringOutline.DOM),
-          preview.DOM)
-        .map(([[size, ...colorEditors], previewDOM]) => pageContent(size, colorEditors, previewDOM));
+        editorsDOM$,
+        previewDOM$)
+      .map(([[size, ...colorEditors], previewDOM]) => pageContent(size, colorEditors, previewDOM));
   }
 }
