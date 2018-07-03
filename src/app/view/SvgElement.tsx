@@ -43,7 +43,7 @@ export function parseSVGProps(svgData: string) {
   const divElm = document.createElement("div");
   divElm.innerHTML = svgData;
   const props: SVGEditableProps = {
-    size: Number(divElm.querySelector("svg").getAttribute("width")),
+    size: Number(divElm.querySelector("svg").getAttribute("width")) || 32,
     paths: {}
   };
   for (const elm of Array.from<HTMLElement>(divElm.querySelectorAll("g > *"))) {

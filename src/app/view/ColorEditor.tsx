@@ -22,10 +22,8 @@ export default function ColorEditor({DOM, props$}: ColorEditorSources) {
   const value$ = xs.merge(colorPicker.color$, props$.map(({defaultValue}) => defaultValue)).remember();
 
   const togglepicker$ = xs.merge(
-    DOM.select(".color-text").events("click")
-      .mapTo(true),
-    DOM.select("document").events("mousedown")
-      .mapTo(false)
+    DOM.select(".color-text").events("click").mapTo(true),
+    DOM.select("document").events("mousedown").mapTo(false)
   ).fold((state, shouldOpen) => !state && shouldOpen, false);
   const state$ = xs.combine(value$, togglepicker$).map(([color, toggle]) => ({color, toggle}));
 

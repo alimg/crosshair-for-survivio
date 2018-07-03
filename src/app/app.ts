@@ -1,13 +1,13 @@
 import { DOMSource, VNode } from "@cycle/dom";
 import { HTTPSource, RequestOptions } from "@cycle/http";
 import { pageContent } from "app/view";
-import ColorEditor, { ColorEditorSinks } from "app/view/ColorEditor";
+import ColorEditor from "app/view/ColorEditor";
 import CrosshairPreview from "app/view/CrosshairPreview";
 import Slider from "app/view/Slider";
 import isolate from "utility/isolate";
 import { errorResponse } from "utility/stream";
 import xs, { Stream } from "xstream";
-import { defaultState, IState, ISVGProps } from "./model";
+import { defaultState } from "./model";
 import { parseSVGProps, SVGEditableProps } from "./view/SvgElement";
 
 type EditorSinks = {

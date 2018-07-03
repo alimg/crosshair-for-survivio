@@ -1,5 +1,5 @@
-import { RequestOptions, Response, ResponseStream } from "@cycle/http";
-import xs, { MemoryStream, Stream } from "xstream";
+import { Response, ResponseStream } from "@cycle/http";
+import xs, { MemoryStream } from "xstream";
 
 export type RequestOrError = Response & { httpError: any };
 export type ResponseMemoryStream = MemoryStream<RequestOrError> & ResponseStream;
