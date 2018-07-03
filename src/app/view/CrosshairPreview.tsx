@@ -70,8 +70,6 @@ export default function CrosshairPreview({DOM, props$, svg$}: CrosshairPreviewSo
     .map(([svg, props]) => <SVG svg={svg} props={props}/>)
     .map((svg) => xs.combine(crosshairLink$, showImport$).map(([crosshairLink, showImport]) => (
       <div attrs-class="card-panel brown lighten-5">
-        <a id="import" href="javascript:void(0)">
-          <i attrs-class="tiny material-icons">cloud_upload</i> Import .svg...</a>
         {showImport ? renderImportPopup() : ""}
         {svg}
         {crosshairLink ?
@@ -98,7 +96,7 @@ export default function CrosshairPreview({DOM, props$, svg$}: CrosshairPreviewSo
 
 function renderImportPopup() {
   return (
-    <Popup class="brown lighten-4">
+    <Popup class="modal brown lighten-4">
       <div attrs-class="modal-content">
         <h4>Import from file</h4>
         <p>

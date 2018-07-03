@@ -36,7 +36,7 @@ export default function ColorEditor({DOM, props$}: ColorEditorSources) {
 
   function view() {
     return xs.combine(state$ , props$).map(([{color, toggle}, {label}]) => colorPicker.DOM.map((colorPickerDom) => (
-      <div attrs-class="col m12 l6">
+      <div attrs-class="col s12 l6">
         <div attrs-class="card brown lighten-5">
           <div attrs-class="card-content">
             <span attrs-class="card-title">{label}</span>

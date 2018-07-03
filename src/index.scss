@@ -29,8 +29,9 @@ body, html {
 }
 
 .popup {
-  @extend .modal;
+  position: fixed;
   display: block;
+  top: 100px;
 }
 
 .ghbtns {
@@ -48,4 +49,8 @@ body, html {
 
 .file-field .btn {
   line-height: calc(3rem - 18px);
+}
+
+#import {
+  width: 100%;
 }

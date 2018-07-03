@@ -10,6 +10,12 @@ export const pageContent = (size, editors, preview) => (
       <div attrs-class="col s12 m5 xl3 row">
         {size}
         <div attrs-class="col s12">
+          <button id="import" attrs-class="btn">
+            <i attrs-class="material-icons left">cloud_upload</i>
+            Import .svg...
+          </button>
+        </div>
+        <div attrs-class="col s12">
           {preview}
         </div>
       </div>
